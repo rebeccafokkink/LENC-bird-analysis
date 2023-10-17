@@ -28,7 +28,7 @@ bird_species_df = bird_df.iloc[start_row_idx:, start_column_idx:end_column_idx +
 # Concatenate the 'build up' column with bird_species_df
 selected_data = pd.concat([bird_df['build up'], bird_species_df], axis=1)
 
-# Group by 'build up' and sum the count of observed species
+# Group by 'build up' and sum the count of observed species per percentage
 count_per_species = selected_data.groupby('build up').sum()
 
 # Create a new column 'species count' and initialize it with zeros in count_per_species
@@ -46,6 +46,14 @@ count_per_species['total birds'] = 0
 for index, row in count_per_species.iterrows():
     total = sum([int(value) if pd.notna(value) and str(value).isdigit() else 0 for value in row])
     count_per_species.at[index, 'total birds'] = total
+
+# Calculate the frequency of each build-up category and add it as a new column
+build_up_freq = bird_df['build up'].value_counts()
+count_per_species['build-up frequency'] = count_per_species.index.map(build_up_freq)
+
+# Calculate the average bird count by dividing the total count by the frequency
+# The result is given in 2 decimals
+count_per_species['average bird count'] = (count_per_species['total birds'] / count_per_species['build-up frequency']).round(2)
 
 # Save the updated DataFrame to 'output.csv'
 count_per_species.to_csv('output.csv', index=True)
